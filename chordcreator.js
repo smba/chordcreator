@@ -1,88 +1,80 @@
+// Define chord types as an object for easy lookup
+var chordTypes = {
+  "dur": [0, 4, 7],
+  "moll": [0, 3, 7],
+  "durmaj7": [0, 4, 7, 11],
+  "dur7": [0, 4, 7, 10],
+  "moll7": [0, 3, 7, 10],
+  "mollmaj7": [0, 3, 7, 11],
+  "jazzdurmaj7-1": [4, 7, 11, 14],
+  "jazzdur7-1": [4, 9, 10, 14],
+  "jazzmoll7-1": [3, 7, 10, 14],
+  "jazzdurmaj7-2": [-1, 2, 4, 7],
+  "jazzdur7-2": [-2, 2, 4, 9],
+  "jazzmoll7-2": [-2, 2, 3, 7]
+};
+
+// Global variables
+var lastStartKey = -1;
+
 /**
- * start int chord int[]
+ * Colorizes the keys on the web page based on the start key and chord.
+ * @param {number} start - The start key.
+ * @param {number[]} chord - The chord notes.
  */
-
-function colorise(start, chord) {
-	// get element by id
-	var startElement = document.getElementById(start.toString());
-	startElement.style.fill = '#ffcc33';
-	document.getElementById("notes").innerHTML = "";
-	var i;
-	for (i = 0; i < chord.length; i++) {
-		var chordElement = document.getElementById(chord[i] + start);
-		chordElement.style.fill = '#ff9900';
-		// alert(document.getElementById(chord[i]).getAttribute("name"));
-		pos = chord[i] + start;
-		document.getElementById("notes").innerHTML += document.getElementById(
-				pos).getAttribute("name");
-		if (i < chord.length - 1) {
-			document.getElementById("notes").innerHTML += " - ";
-		}
-	}
+function colorize(start, chord) {
+  var startElement = document.getElementById(start.toString());
+  startElement.style.fill = '#ffcc33';
+  document.getElementById("notes").innerHTML = chord.map(function(note) {
+    var pos = start + note;
+    var chordElement = document.getElementById(pos.toString());
+    chordElement.style.fill = '#ff9900';
+    return chordElement.getAttribute("name");
+  }).join(" - ");
 }
 
+/**
+ * Resets the colors of all keys on the web page.
+ */
 function clearKeys() {
-	var i;
-	for (i = 0; i <= 35; i++) {
-
-		var currentKey = document.getElementById(i.toString());
-
-		var base = currentKey.getAttribute("base");
-		currentKey.style.fill = base;
-
-	}
+  for (var i = 0; i <= 35; i++) {
+    var currentKey = document.getElementById(i.toString());
+    var base = currentKey.getAttribute("base");
+    currentKey.style.fill = base;
+  }
 }
 
-function getChord(start) {
-
-	var e = document.getElementById("chordtype");
-
-	var chordtype = e.options[e.selectedIndex].value;
-
-	if (chordtype == "dur") {
-		var chord = [ 0, 4, 7 ];
-	} else if (chordtype == "moll") {
-		var chord = [ 0, 3, 7 ];
-	} else if (chordtype == "durmaj7") {
-		var chord = [ 0, 4, 7, 11 ];
-	} else if (chordtype == "dur7") {
-		var chord = [ 0, 4, 7, 10 ];
-	} else if (chordtype == "moll7") {
-		var chord = [ 0, 3, 7, 10 ];
-	} else if (chordtype == "mollmaj7") {
-		var chord = [ 0, 3, 7, 11 ];
-	} else if (chordtype == "jazzdurmaj7-1") {
-		var chord = [ 4, 7, 11, 14 ];
-	} else if (chordtype == "jazzdur7-1") {
-		var chord = [ 4, 9, 10, 14 ];
-	} else if (chordtype == "jazzmoll7-1") {
-		var chord = [ 3, 7, 10, 14 ];
-	} else if (chordtype == "jazzdurmaj7-2") {
-		var chord = [ -1, 2, 4, 7 ];
-	} else if (chordtype == "jazzdur7-2") {
-		var chord = [ -2, 2, 4, 9 ];
-	} else if (chordtype == "jazzmoll7-2") {
-		var chord = [ -2, 2, 3, 7 ];
-	}
-	return chord;
+/**
+ * Retrieves the selected chord type from the dropdown menu.
+ * @returns {number[]} The chord notes.
+ */
+function getChord() {
+  var e = document.getElementById("chordtype");
+  var chordtype = e.options[e.selectedIndex].value;
+  return chordTypes[chordtype];
 }
 
-// main
+// Main
 $(function() {
+  /**
+   * Event handler for the click event on the SVG elements (keys).
+   */
+  $("rect").click(function(event) {
+    clearKeys();
+    var start = parseInt(event.target.id);
+    var chord = getChord();
+    colorize(start, chord);
+    lastStartKey = start;
+  });
 
-	// Global variables
-	var lastStartKey = -1;
-
-	$("rect").click(function(event) {
-		clearKeys();
-		colorise(parseInt(event.target.id), getChord());
-		lastStartKey = parseInt(event.target.id);
-	});
-
-	$("select#chordtype").change(function(event) {
-		clearKeys();
-		if (lastStartKey != -1) {
-			colorise(lastStartKey, getChord());
-		}
-	});
+  /**
+   * Event handler for the change event on the select element (chord type).
+   */
+  $("select#chordtype").change(function(event) {
+    clearKeys();
+    if (lastStartKey !== -1) {
+      var chord = getChord();
+      colorize(lastStartKey, chord);
+    }
+  });
 });
